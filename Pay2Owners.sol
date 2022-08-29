@@ -8,7 +8,8 @@ contract Pay2Owner{
     address payable owner2;
 
     mapping(address => uint) public mp;
-
+    
+    uint256 public totalBal;
 
     //Initialise Owner             
     constructor() {
@@ -37,35 +38,19 @@ contract Pay2Owner{
     }
 
     //Withdraw the _money from contract and providing logic
-    function withdraw(uint256 _money) public payable {
+   function withdraw(uint256 _money) public payable {
         
         require(msg.sender==owner1 || msg.sender == owner2, "Only Owner can withdraw funds");
-       
-        if(msg.sender == owner1)
-        {
-            //mp[msg.sender] = Funds in owner1 + this amount should be less than Funds in owner2 + 
-            if((mp[msg.sender] + _money == mp[owner2] + ContractBalance() - _money))
+            if((mp[msg.sender]+_money < totalBal/2))
                   {
                       sendMoney(payable(msg.sender),_money);
                   mp[msg.sender] += _money;
         }
         else
         {
-            sendMoney(payable(msg.sender), ((ContractBalance()+ mp[owner2] - mp[owner1] )/ 2));
-            mp[msg.sender] +=((ContractBalance() + mp[owner1] + mp[owner2] )/ 2) - mp[owner1];
-        }
-        }
-        else{
-            //REpeated with Owner Change
-            if((mp[msg.sender] + _money == mp[owner1] + ContractBalance() - _money))
-                  {
-                      sendMoney(payable(msg.sender),_money);
-                  mp[msg.sender] += _money;
-        }
-        else
-        {
-            sendMoney(payable(msg.sender), ((ContractBalance()+ mp[owner2] - mp[owner1] )/ 2));
-            mp[msg.sender] +=((ContractBalance() + mp[owner1] + mp[owner2] )/ 2) - mp[owner2];
+            require(mp[msg.sender] != totalBal/2,"ALREADY WITHDRAWN");
+            sendMoney(payable(msg.sender), ((totalBal/2 - mp[msg.sender] )));
+            mp[msg.sender] +=totalBal/2 - mp[msg.sender];
         }
         }
     }
